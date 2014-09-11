@@ -33,16 +33,13 @@
 // lives
 #define LIVES 3
 
-// colors
-#define red     0;
-#define orange  1;
-#define yellow  2;
-#define green   3;
-#define blue    4;
+// number of randomly placed powerups
+#define POWERUPS 10
 
 
 // prototypes
 void initBricks(GWindow window);
+void initPowerUps(GWindow window);
 GOval initBall(GWindow window);
 GRect initPaddle(GWindow window);
 GLabel initScoreboard(GWindow window);
@@ -59,6 +56,9 @@ int main(void)
 
   // instantiate bricks
   initBricks(window);
+  
+  // deal out the powerUps
+  initPowerUps(window);
 
   // instantiate ball, centered in middle of window
   GOval ball = initBall(window);
@@ -110,20 +110,24 @@ int main(void)
     // bounce off right edge of window
     if (getX(ball) + RADIUS*2 >= getWidth(window))
     {
+      setLocation(ball, getWidth(window) - RADIUS*2, getY(ball));
       xvelocity = -xvelocity;
     }
     // bounce off left edge of window
     else if (getX(ball) <= 0)
     {
+      setLocation(ball, 1, getY(ball));
       xvelocity = -xvelocity;
     }
 
-    // bounce off bottom of window
+    // die off bottom of window
     if (getY(ball) + RADIUS*2 >= getHeight(window))
     {
       lives--;
       setLocation(ball, WIDTH/2, HEIGHT/2);
       waitForClick();
+      velocity = -velocity;
+      xvelocity = -xvelocity;
     }
     // bounce off top of window
     else if (getY(ball) <= 0)
@@ -133,16 +137,42 @@ int main(void)
     GObject collision = detectCollision(window, ball);
     if (collision != NULL && collision != label)
     {
-      if (strcmp(getType(collision), "GRect") == 0 && collision != paddle)
+      if (strcmp(getType(collision), "GOval") == 0)
+      {
+        setVisible(collision, false);
+        if (strcmp(getColorGObject(collision), "#FFCC00") == 0)
+        {
+          points+=2;
+        } else if (strcmp(getColorGObject(collision), "#000000") == 0)
+        {
+          setSize(paddle, getWidth(paddle)+20, getHeight(paddle));
+          points++;
+          if (getWidth(paddle) >= 120)
+          {
+            setColor(paddle, "#000000");
+            setColor(ball, "#000000");
+            wait = 3;
+          }
+        }
+      }
+      else if (strcmp(getType(collision), "GRect") == 0 && collision != paddle)
       {
         setVisible(collision, false);
         bricks--;
         velocity = -velocity;
         if (strcmp(getColorGObject(collision), "#FF0000") == 0)
         {
-          wait = 5;
-          setColor(ball, "#FF0000");
-          setColor(paddle, "#FF0000");
+          if (!(wait < 5))
+          {
+            wait = 5;
+            setColor(ball, "#FF0000");
+            setColor(paddle, "#FF0000");
+          }
+          else
+          {
+            // leave wait alone!
+          }
+          
           points += 5;
         }
         else if (strcmp(getColorGObject(collision), "#FF9933") == 0)
@@ -158,6 +188,10 @@ int main(void)
             // leave wait alone...
           }
           points += 3;
+        }
+        else if (strcmp(getColorGObject(collision), "#FFCC00") == 0)
+        {
+          points += 2;
         }
         else
         {
@@ -200,6 +234,47 @@ int main(void)
   // game over
   closeGWindow(window);
   return 0;
+}
+
+/**
+ * Initializes powerUps and bonus points at random spots on the screen
+ */
+void initPowerUps(GWindow window)
+{
+  string type = "";
+  for (int i = 0; i < POWERUPS; i++)
+  {
+    type = "";
+    int rand = drand48() * 10;
+    if (rand < 5)
+    {
+      type = "shooter";
+    }
+    else if (rand >= 5 && rand <= 7)
+    {
+      type = "larger";
+    }
+    else if (rand > 7 <= 9)
+    {
+      type = "bonus";
+    }
+
+    GOval power = newGOval((drand48()*100)+i*20, (drand48()*100)+180+i*16, 20, 16);
+    if (strcmp(type, "shooter") == 0)
+    {
+      setColor(power, "#FF0000");
+    }
+    else if (strcmp(type, "larger") == 0)
+    {
+      setColor(power, "#000000");
+    }
+    else if (strcmp(type, "bonus") == 0)
+    {
+      setColor(power, "#FFCC00");
+    }
+    setFilled(power, true);
+    add(window, power);
+  }
 }
 
 /**
