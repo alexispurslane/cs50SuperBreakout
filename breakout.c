@@ -58,7 +58,7 @@ int main(void)
   initBricks(window);
   
   // deal out the powerUps
-  initPowerUps(window);
+  //initPowerUps(window);
 
   // instantiate ball, centered in middle of window
   GOval ball = initBall(window);
@@ -137,7 +137,7 @@ int main(void)
     GObject collision = detectCollision(window, ball);
     if (collision != NULL && collision != label)
     {
-      if (strcmp(getType(collision), "GOval") == 0)
+      /*if (strcmp(getType(collision), "GOval") == 0)
       {
         setVisible(collision, false);
         if (strcmp(getColorGObject(collision), "#FFCC00") == 0)
@@ -154,8 +154,8 @@ int main(void)
             wait = 3;
           }
         }
-      }
-      else if (strcmp(getType(collision), "GRect") == 0 && collision != paddle)
+      }*/
+      /*else*/ if (strcmp(getType(collision), "GRect") == 0 && collision != paddle)
       {
         setVisible(collision, false);
         bricks--;
@@ -199,19 +199,13 @@ int main(void)
         }
       } else {
         velocity = -velocity;
-        int random = drand48() * 10;
-        if (random <= 5)
-        {
-          // leave xvelocity alone... For now!
-        }
-        else if (random >= 5)
+        if (getX(ball) < getWidth(paddle)/2)
         {
           xvelocity = -xvelocity;
         }
-
-        if (getY(ball) > getY(collision) + getHeight(collision))
+        else if (getX(ball) > getWidth(paddle)/2)
         {
-          move(ball, 0, 10);
+          // leave xvelocity alone.
         }
       }
     }
@@ -246,15 +240,15 @@ void initPowerUps(GWindow window)
   {
     type = "";
     int rand = drand48() * 10;
-    if (rand < 5)
+    if (rand < 2)
     {
       type = "shooter";
     }
-    else if (rand >= 5 && rand <= 7)
+    else if (rand > 7 && rand < 9)
     {
       type = "larger";
     }
-    else if (rand > 7 <= 9)
+    else if (rand > 2 && rand <= 7)
     {
       type = "bonus";
     }
